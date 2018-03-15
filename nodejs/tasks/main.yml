@@ -28,8 +28,9 @@
     http_proxy: "{{ proxy_url | default('') }}"
     https_proxy: "{{ proxy_url | default('') }}"
 
-
-- include: configure_node_env_vars.yml
+- include_role:
+    name: configure-buildfarm
+    tasks_from: configure_node_env_vars
 
 -
   name: Install npm packages
@@ -42,3 +43,4 @@
     PATH: "{{ buildfarm_env_path.stdout }}"
     http_proxy: "{{ proxy_url | default('') }}"
     https_proxy: "{{ proxy_url | default('') }}"
+  when: npm_packages is defined

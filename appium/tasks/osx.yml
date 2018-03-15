@@ -1,0 +1,162 @@
+---
+
+- include_role:
+    name: provision-osx
+    tasks_from: configure_base_system
+
+- include_role:
+    name: configure-buildfarm
+    tasks_from: configure_node_env_vars
+
+- name: Install python 2
+  homebrew:
+    name: python@2
+
+- name: Install virtualenv and pexpect
+  pip:
+    name: "{{ item }}"
+  environment:
+    PATH: "{{ buildfarm_env_path.stdout }}"
+  with_items:
+    - virtualenv
+    - pexpect
+
+- name: Install androidctl
+  pip:
+    name: https://github.com/aerogear/androidctl/archive/master.zip
+    virtualenv: "{{ digger_venv }}"
+  environment:
+    PATH: "{{ buildfarm_env_path.stdout }}"
+
+- include_role:
+    name: android-sdk
+    tasks_from: osx
+
+- name: Update brew
+  homebrew:
+    update_homebrew: yes
+
+- include_role:
+    name: nodejs
+
+- name: Get node version
+  shell: /bin/bash -c "source ~/.nvm/nvm.sh; nvm current"
+  register: node_version
+  changed_when: False
+
+- set_fact:
+    node_dir: "/Users/{{ ansible_user_id }}/.nvm/versions/node/{{ node_version.stdout }}"
+
+- set_fact:
+    node_bin: "{{ node_dir }}/bin"
+
+- name: Install appium and ios-deploy
+  npm:
+    name: "{{ item }}"
+    global: yes
+  environment:
+    PATH: "{{ ansible_env.PATH }}:{{ node_bin }}"
+  become: false
+  with_items:
+    - appium
+    - ios-deploy
+
+- name: Install carthage, libimobiledevice and ios-webkit-debug-proxy
+  homebrew:
+    name: "{{ item.name }}"
+    state: "{{ item.state }}"
+  with_items:
+    - { name: carthage, state: present }
+    - { name: libimobiledevice, state: head }
+    - { name: ios-webkit-debug-proxy, state: present }
+
+- set_fact:
+    webdriver_dir: "{{ node_dir }}/lib/node_modules/appium/node_modules/appium-xcuitest-driver/WebDriverAgent"
+
+- name: Create fastlane dir
+  file:
+    path: "{{ webdriver_dir }}/fastlane"
+    state: directory
+
+- name: Copy Fastfile
+  template:
+    src: "Fastfile.j2"
+    dest: "{{ webdriver_dir }}/fastlane/Fastfile"
+    force: yes
+
+- name: Copy fastlane files
+  copy:
+    src: "{{ item }}"
+    dest: "{{ webdriver_dir }}/fastlane/{{ item }}"
+  with_items:
+    - Appfile
+    - Pluginfile
+
+- name: Copy Gemfile
+  copy:
+    src: Gemfile
+    dest: "{{ webdriver_dir }}/Gemfile"
+
+- name: Install fastlane tools
+  gem: 
+    name: fastlane
+    user_install: False
+  become: true
+
+- name: Install fastlane dependencies
+  shell: fastlane install_plugins
+  args:
+    chdir: "{{ webdriver_dir }}/"
+  environment:
+    PATH: "{{ ansible_env.PATH }}:/usr/local/bin"
+  become: true
+
+- name: Setup provisioning
+  shell: fastlane prov
+  args:
+    chdir: "{{ webdriver_dir }}/"
+  environment:
+    PATH: "{{ ansible_env.PATH }}:/usr/local/bin"
+
+- name: Copy certificate and key
+  copy:
+    src: "{{ certificates_dir }}/{{ item }}"
+    dest: "~/{{ item }}"
+  with_items:
+    - debug.cer
+    - debug.p12
+
+- name: Import certificate and key
+  shell: |
+    security delete-keychain appium.keychain || true
+    security create-keychain -p pass123 appium.keychain
+    security unlock-keychain -p pass123 appium.keychain
+    security list-keychains -d user -s appium.keychain
+    security default-keychain -s appium.keychain
+    security import debug.cer -k appium.keychain -A
+    security import debug.p12 -k appium.keychain -P {{ key_password }} -A
+    security set-key-partition-list -S apple-tool:,apple: -s -k pass123 appium.keychain
+
+- name: Create provisioning profiles folder
+  file:
+    path: ~/Library/MobileDevice/Provisioning Profiles
+    state: directory
+
+- name: Copy provisioning profile
+  copy:
+    src: "{{ certificates_dir }}/debug.mobileprovision"
+    dest: ~/Library/MobileDevice/Provisioning Profiles/appium.mobileprovision
+
+- name: Copy additional config files for jenkins appium testing
+  template:
+    src: "{{ item }}.j2"
+    dest: "~/{{ item }}"
+    force: yes
+  with_items:
+    - ".bashrc"
+    - "appium-ios-dc.json"
+
+- include_role:
+    name: configure-buildfarm
+    tasks_from: configure_buildfarm_node
+    vars_from: osx

@@ -1,5 +1,8 @@
 ---
 ## setup default template directories
+- include_role:
+    name: login
+
 -
   name: "Check and include productised release image versions"
   include_vars: ../shared_files/{{ rhmap_version }}.yml

@@ -1,0 +1,16 @@
+fastlane_version "2.28.7"
+
+default_platform :ios
+
+platform :ios do
+  lane :prov do
+    update_provisioning_profile_specifier(
+      new_specifier: "{{ provisioning_profile }}",
+      target: "WebDriverAgentRunner"
+    )
+    update_provisioning_profile_specifier(
+      new_specifier: "{{ provisioning_profile }}",
+      target: "IntegrationApp"
+    )
+  end
+end

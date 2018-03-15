@@ -1,0 +1,30 @@
+---
+
+- include_role:
+    name: java
+    tasks_from: fedora
+
+- name: Install androidctl
+  pip:
+    name: https://github.com/aerogear/androidctl/archive/master.zip
+  become: true
+
+- include_role:
+    name: android-sdk
+    tasks_from: linux
+
+- include_role:
+    name: nodejs
+
+- name: Install appium
+  npm:
+    name: appium
+    global: yes
+  environment:
+    PATH: "{{ ansible_env.PATH }}:{{ node_bin }}"
+  become: false
+
+- include_role:
+    name: configure-buildfarm
+    tasks_from: configure_buildfarm_node
+    vars_from: linux

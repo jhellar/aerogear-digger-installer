@@ -142,7 +142,7 @@
 
 -
   name: Create node
-  shell: cat {{ node_config_file.dest }} | java -jar /tmp/jenkins-cli.jar -remoting -s {{ jenkins_route_protocol | default('https') }}://{{ route_output.stdout }} create-node
+  shell: cat {{ node_config_file.dest }} | java -jar /tmp/jenkins-cli.jar -i {{ jenkins_private_key_path | default('$HOME/.ssh/id_rsa') }} -remoting -s {{ jenkins_route_protocol | default('https') }}://{{ route_output.stdout }} create-node
   args:
     executable: /bin/bash
   register: create_node

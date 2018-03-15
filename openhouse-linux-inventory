@@ -1,0 +1,39 @@
+[Nodes:children]
+master
+
+[Nodes:vars]
+ansible_connection=local
+target="cluster_up"
+skip_tls=true
+
+# OpenShift Credentials
+master_url='https://192.168.99.100:8443'
+login_url='https://192.168.99.100:8443'
+oc_user=developer
+oc_password=developer
+
+# OpenShift project name.
+project_name=digger
+
+# The protocol of the Jenkins server. Default value is `https` but for local development we use http
+jenkins_route_protocol=http
+
+#Digger Variables
+digger_platforms="android,ios"
+#proxy_host=https://myproxy.com
+#proxy_port=80
+#proxy_device=Ethernet
+#proxy_ctx=["setwebproxy", "setsecurewebproxy"]
+
+[master]
+127.0.0.1
+
+[appium]
+10.40.2.111
+
+[appium:vars]
+linux_user=openhouse
+ansible_become_pass=openhouse
+jenkins_route_protocol=http
+
+[macos]

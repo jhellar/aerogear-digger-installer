@@ -1,0 +1,35 @@
+---
+
+-
+  name: Installs openjdk
+  dnf:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ openjdk_packages }}"
+  environment:
+    http_proxy: "{{ proxy_url | default('') }}"
+    https_proxy: "{{ proxy_url | default('') }}"
+  become: true
+
+-
+  name: Installs libselinux-python
+  dnf:
+    name: libselinux-python
+    state: present
+  environment:
+    http_proxy: "{{ proxy_url | default('') }}"
+    https_proxy: "{{ proxy_url | default('') }}"
+  become: true
+
+-
+  name: Set java home
+  lineinfile:
+    dest: "$HOME/.bashrc"
+    line: "export JAVA_HOME=/etc/alternatives/java_sdk_{{ java_version }}"
+
+-
+  name: Set java bin path
+  lineinfile:
+    dest: "$HOME/.bashrc"
+    line: "export PATH=$PATH:$JAVA_HOME/bin"
+  

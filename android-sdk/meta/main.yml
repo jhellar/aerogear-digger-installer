@@ -15,5 +15,5 @@ galaxy_info:
   galaxy_tags:
     - digger
 
-dependencies:
-  - { role: login }
+# dependencies:
+#   - { role: login }

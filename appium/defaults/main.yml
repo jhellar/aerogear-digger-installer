@@ -1,0 +1,11 @@
+---
+
+remote_tmp_dir: /tmp
+
+digger_venv: "{{ remote_tmp_dir }}/digger_venv"
+
+nvm_install_url: https://raw.githubusercontent.com/creationix/nvm/v0.33.8/install.sh
+nvm_install_file_name: install-nvm.sh
+
+node_versions:
+- node

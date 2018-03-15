@@ -12,7 +12,8 @@
 - include: install_homebrew.yml
   tags: osx_install_homebrew
 
-- include: install_nodejs.yml
+- include_role:
+    name: nodejs
   tags: osx_install_nodejs
 
 - include: download_certs.yml
@@ -21,7 +22,9 @@
 - include: cocoapods.yml
   tags: osx_cocoapods
 
-- include: configure_buildfarm_node.yml
+- include_role:
+    name: configure-buildfarm
+    tasks_from: configure_buildfarm_node
   tags: osx_configure_buildfarm
 
 - include: configure_buildfarm_proxy.yml

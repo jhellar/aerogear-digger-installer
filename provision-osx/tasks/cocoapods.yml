@@ -1,4 +1,6 @@
-- include: configure_node_env_vars.yml
+- include_role:
+    name: configure-buildfarm
+    tasks_from: configure_node_env_vars
 
 -
   name: Install cocoapods

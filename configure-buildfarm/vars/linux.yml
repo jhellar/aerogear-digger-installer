@@ -1,0 +1,26 @@
+buildfarm_node_port: 22
+
+buildfarm_node_root_dir: "/home/{{linux_user}}"
+
+buildfarm_credential_id: linux_buildfarm_cred
+
+buildfarm_credential_description: Shared credential for the linux nodes in the buildfarm
+
+buildfarm_node_name: "linux"
+
+buildfarm_node_labels:
+- android
+- appium
+
+buildfarm_user_id: admin
+
+buildfarm_node_executors: 1
+
+buildfarm_node_mode: NORMAL
+
+buildfarm_node_description: linux node for the buildfarm
+
+buildfarm_lang_env_var: "en_US.UTF-8"
+buildfarm_path_env_var: "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+
+buildfarm_credential_username: "{{ linux_user }}"

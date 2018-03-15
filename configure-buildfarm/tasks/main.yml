@@ -1,5 +1,8 @@
 ---
 
+- include_role:
+    name: login
+
 -
   name: "Include release specific image versions"
   include_vars: ../shared_files/{{ rhmap_version }}.yml

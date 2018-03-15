@@ -1,0 +1,73 @@
+---
+
+- name: "Set random filename"
+  set_fact:
+    config_file: "sample{{ 10000 | random }}.cfg"
+
+- debug:
+    msg: "Filename set to {{ config_file }}"
+
+- name: "Template out configuaration file"
+  template:
+    src: sample_cfg.j2
+    dest: /tmp/{{ config_file }}
+    force: yes
+  vars:
+    components: "{{ android_sdk_components }}"
+    keystore: "{{ android_debug_keystore }}"
+
+- name: "Checks if android sdk folder already exists"
+  command: "test -f /Users/{{ ansible_user_id }}/Library/Android/sdk/tools/bin/sdkmanager"
+  register: sdk_folder
+  failed_when: false
+    
+- name: "Prompt to accept license"
+  pause:
+    prompt: |
+      Press enter to accept Android's SDK license and install the SDK
+      https://developer.android.com/studio/index.html#linux-bundle
+  when:
+    - sdk_folder.rc == 1
+    
+- name: "Create sdk dir"
+  file:
+    path: "/Users/{{ ansible_user_id }}/Library/Android/sdk"
+    state: directory
+
+- name: "Install the Android SDK"
+  command: "{{digger_venv}}/bin/androidctl sdk install"
+  when: sdk_folder.rc == 1
+  environment:
+    PATH: "{{ buildfarm_env_path.stdout }}"
+    ANDROID_HOME: "/Users/{{ ansible_user_id }}/Library/Android/sdk"
+
+# sync using the config file
+
+- name: "Sync Android Platform Versions via config"
+  command: "{{digger_venv}}/bin/androidctl sync /tmp/{{ config_file }}"
+  register: rsh_cmd
+  failed_when: "'Traceback' in rsh_cmd.stdout or 'Common Arguments' in rsh_cmd.stdout"
+  environment:
+    PATH: "{{ buildfarm_env_path.stdout }}"
+    ANDROID_HOME: "/Users/{{ ansible_user_id }}/Library/Android/sdk"
+
+- debug:
+    msg: "Licences are up to date. Continuing...."
+  when: "'Accept?' not in rsh_cmd.stdout"
+
+- pause:
+    prompt:  "{{ rsh_cmd.stdout.split('--------------------')[1] }} Hit enter to accept the Licence or hit Ctrl _c and 'A' to reject and cancel the installation."
+  when: "'Accept?' in rsh_cmd.stdout"
+
+- name: "Licence accepted. Installing SDK ** Note ** This task may take some time, please be patient"
+  expect:
+    command: "{{digger_venv}}/bin/androidctl sync /tmp/{{ config_file }}"
+    responses:
+      'Accept\? \(y/N\):':
+        - "y\n"
+        - "y\n"
+    timeout: 600
+  when: "'Accept?' in rsh_cmd.stdout"
+  environment:
+    PATH: "{{ buildfarm_env_path.stdout }}"
+    ANDROID_HOME: "/Users/{{ ansible_user_id }}/Library/Android/sdk"

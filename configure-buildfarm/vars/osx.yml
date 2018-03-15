@@ -1,0 +1,27 @@
+buildfarm_node_port: 22
+
+buildfarm_node_root_dir: "/Users/{{macos_user}}"
+
+buildfarm_credential_id: macOS_buildfarm_cred
+
+buildfarm_credential_description: Shared credential for the macOS nodes in the buildfarm
+
+buildfarm_node_name: "macOS"
+
+buildfarm_node_labels:
+- ios
+- android
+- appium
+
+buildfarm_user_id: admin
+
+buildfarm_node_executors: 1
+
+buildfarm_node_mode: NORMAL
+
+buildfarm_node_description: macOS node for the buildfarm
+
+buildfarm_lang_env_var: "en_US.UTF-8"
+buildfarm_path_env_var: "$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+
+buildfarm_credential_username: "{{ macos_user }}"
